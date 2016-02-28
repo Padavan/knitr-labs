@@ -1,0 +1,297 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage{polyglossia}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+
+\input{packages}       
+\input{styles} 
+\begin{document}
+
+\input{title}
+
+%==================__Test Page__===========================
+\section*{Цель работы} 
+Исследование однофононного резонанса, его проявления в спектре отражения полупроводника. Наблюдение и сравнение спектров отражения для разных полупроводников (на примере Ge и SiC). Освоение метода исследования спектра отражения в ИК области.
+
+\section*{Схема установки и проведение эксперимента}
+ измерение отражения SiC и Ge в диапазоне длин волн от 4 до 15 мкм;
+- фиксация уровня шума (Uш) и введение соответствующих поправок;
+- построение графиков измеренных спектров в осях: коэффициент отражения – длина волны, с указанием погрешностей;
+- анализ спектра отражения SiC с использованием модели классического осциллятора, определение параметров модели;
+- сравнение экспериментальной величины коэффициента отражения германия (средней по спектру) с расчетной. \\
+
+\begin{wrapfigure}{r}{7.5cm}
+  %\center
+  \includegraphics[width=7.5cm]{scheme}
+  \caption{Схема установки} 
+  \label{img:scheme}  
+\end{wrapfigure} 
+
+
+1. глобар \\
+2. зеркало \\
+3. зеркало \\
+4. механический модулятор \\
+5. входная щель монохроматора \\
+6. плоское зеркало \\
+7. параболическое зеркало \\
+8. трехгранная призма \\
+9. плоское зеркало \\
+10. выходная щель монохроматора \\
+11. сферическое зеркало \\
+12. поворотная турель с образцами \\
+13. сферическое зеркало \\
+14. пироэлектрический фотоприемник \\
+15. селективный усилитель сигнала \\
+
+
+\section*{Ход работы}
+
+% PART1 -------------------------------------------------------
+\textbf{1-2.}Измерение отражения SiC и Ge
+
+Перед проведением измерений посредством маломощной лампы накаливания была выполнена калибровка экспериментальной установки. 
+
+Зафиксированный уровень шума много меньше измеряемого сигнала, в связи с чем данный параметр не учитывался в вычислениях.
+
+% PART1 -------------------------------------------------------
+\textbf{3.} Построим график. Рис. \ref{fig:rgraph51}
+
+<<rgraph51, echo=FALSE, fig.cap="График спектров отражения", dev='cairo_pdf', fig.height=4, fig.show='asis', fig.pos="!h",  message=FALSE,results='hide', warning=FALSE>>=
+library(ggplot2)
+setwd("~/Documents/Labs/lab08")
+dat1 <- read.csv('dataset1.csv', sep = '\t')
+lambda <- dat1$l
+U_Al <- dat1$Al
+U_SiC <- dat1$SiC
+U_Ge <- dat1$Ge
+
+U_0 <- U_Al/0.98
+r_SiC <- U_SiC/U_0
+r_Ge <- U_Ge/U_0
+
+lmin <-9.9
+l0 <-12.6
+l2 <-l0+1
+
+df <- data.frame(lambda, r_SiC, r_Ge)
+#dfna <- data.frame(L_1)
+w1 <- ggplot(df,aes(x=lambda), colour = variable) +
+  geom_line(aes(y=r_SiC), colour="red") +
+  geom_line(aes(y=r_Ge), colour="blue") +
+  geom_point(aes(y=r_Ge), shape=1) + 
+  geom_point(aes(y=r_SiC), shape=2) + 
+  geom_vline(xintercept=lmin, linetype=4, colour="black") + 
+  geom_vline(xintercept=l0, linetype=4, colour="black") + 
+  geom_vline(xintercept=l2, linetype=4, colour="black") + 
+  labs(list(y = expression(list(r)),x = expression(list(lambda,mkm))))
+  theme_bw()
+plot(w1)
+
+@
+
+% PART1 -------------------------------------------------------
+\textbf{4.} Проанализируем спектр отражения SiC исользуя модель классического осциллятора. Для этого перестроим график в координатах: $(1+\sqrt{r})^2/(1-\sqrt{r})^2 \sim 1/(\lambda^2-\lambda_0^2) $
+
+
+<<rgraph52, echo=FALSE, fig.cap="Перестроенный спектр ", dev='cairo_pdf', fig.height=4, fig.show='asis', fig.pos="!h",  message=FALSE,results='hide', warning=FALSE>>=
+library(ggplot2)
+setwd("~/Documents/Labs/lab08")
+dat1 <- read.csv('dataset1.csv', sep = '\t')
+lambda <- dat1$l
+U_Al <- dat1$Al
+U_SiC <- dat1$SiC
+U_Ge <- dat1$Ge
+
+U_0 <- U_Al/0.98
+r_SiC <- U_SiC/U_0
+r_Ge <- U_Ge/U_0
+
+
+lambda <- c(lambda[1:7], lambda[12:14])
+r_SiC <- c(r_SiC[1:7], r_SiC[12:14])
+lmin <-9.9
+l0 <-12.6
+l2 <-l0+1
+
+xdata <- 1/(lambda^2-l0^2)
+ydata <- (1+sqrt(r_SiC))^2/(1-sqrt(r_SiC))^2
+
+fit <- lm(ydata ~ xdata)
+options(scipen = 1, digits = 2)
+k <- summary(fit)$coef[[2]]
+kerr <- summary(fit)$coef[[2,2]]
+options(scipen = 1, digits = 2)
+b <- summary(fit)$coef[[1]]
+berr <- summary(fit)$coef[[1,2]]
+
+stuff <-abs(-b/k)
+eps0 <- b
+epsinf <- eps0 - (eps0)/(l0^2*stuff)
+
+w_0 <-3E8/(l0*1E-6)
+
+df <- data.frame(xdata,ydata)
+g <- ggplot(df, aes(x = xdata, y = ydata)) +
+  geom_point()+
+  geom_line() +
+  labs(list(y = expression(list(ln(I/T))),x = expression(list(1/T,1/K)))) +
+  geom_smooth(method=lm,se=FALSE) +
+  theme_bw()
+plot(g)
+@
+
+При аппроксимации функции получаем следущие значения.
+
+$y = \Sexpr{k} \cdot x + \Sexpr{b} $
+
+$tg \gamma = \Sexpr{k} \pm \Sexpr{kerr}$
+
+$C = \Sexpr{b} \pm \Sexpr{berr} $
+
+Из этого следует, что $\varepsilon_0 = C = \Sexpr{b}$.
+
+$ \frac{\varepsilon_0}{\lambda_0^2 (\varepsilon_{\infty} - \varepsilon_0)}= \Sexpr{-b/k}$
+
+$\varepsilon_{\infty} = \varepsilon_0 - \frac{\varepsilon_0}{\lambda_0^2}   =   \Sexpr{epsinf}$
+
+$\omega_0 = \frac{c}{\lambda_0} = 23.80 \cdot 10^{12} Hz$
+
+Последний параметр $\gamma$ подбирается. Рис. \ref{fig:rgraph53}
+
+<<rgraph53, echo=FALSE, fig.cap="График спектров отражения. Подбор коэффициента ", dev='cairo_pdf', fig.height=4, fig.show='asis', fig.pos="!h",  message=FALSE,results='hide', warning=FALSE>>=
+options(scipen=999, digits = 7)
+q <- 1.6E-19
+m <- 9.8E-31
+c <- 3E8
+w0 <- c/(l0)
+
+l <- seq(from=5, to = 14, by=.2)
+#l <- lambda
+w <- c/l
+
+f_proxy <- (eps0-epsinf)*(1-0.82)
+#f <- abs(f_proxy*w0) #9E6
+f <- 3.5E6
+a <- epsinf+(eps0-epsinf)*(w0^2*(w0^2-w^2)/((w0^2-w^2)^2+w^2*f^2))
+b <- (eps0-epsinf)*(w0^2*w*f/((w0^2-w^2)^2+w^2*f^2))
+n <-b/2*sqrt((4*a+1)/b^2)
+k <-sqrt(b^2/(4*a+1))
+r1 <- ((n-1)^2+k^2)/((n+1)^2+k^2)
+
+f <- 3.4E6
+a <- epsinf+(eps0-epsinf)*(w0^2*(w0^2-w^2)/((w0^2-w^2)^2+w^2*f^2))
+b <- (eps0-epsinf)*(w0^2*w*f/((w0^2-w^2)^2+w^2*f^2))
+n <-b/2*sqrt((4*a+1)/b^2)
+k <-sqrt(b^2/(4*a+1))
+r2 <- ((n-1)^2+k^2)/((n+1)^2+k^2)
+
+f <- 3.3E6
+a <- epsinf+(eps0-epsinf)*(w0^2*(w0^2-w^2)/((w0^2-w^2)^2+w^2*f^2))
+b <- (eps0-epsinf)*(w0^2*w*f/((w0^2-w^2)^2+w^2*f^2))
+n <-b/2*sqrt((4*a+1)/b^2)
+k <-sqrt(b^2/(4*a+1))
+r3 <- ((n-1)^2+k^2)/((n+1)^2+k^2)
+
+lambda <- dat1$l
+U_Al <- dat1$Al
+U_SiC <- dat1$SiC
+U_0 <- U_Al/0.98
+r_SiC <- U_SiC/U_0
+
+df <- data.frame(l, r1, r2,r3)
+df2 <- data.frame(lambda,r_SiC)
+w2 <- ggplot(df,aes(x=l)) +
+  geom_line(aes(y=r1), linetype=3) + 
+  geom_line(aes(y=r2), linetype=4) + 
+  geom_line(aes(y=r3), linetype=5) + 
+  geom_point(data=df2,aes(x=lambda, y=r_SiC)) + 
+  coord_cartesian(ylim = c(0.1, 1)) +
+  labs(list(y = expression(list(r)),x = expression(list(lambda,mkm)))) +
+  theme_bw() +
+      scale_fill_discrete(name="Experimental\nCondition",
+                         breaks=c("ctrl", "trt1", "trt2"),
+                         labels=c("gamma1", "gamma2", "gamma3"))
+plot(w2)
+
+options(scipen=1, digits = 2)
+f <- 3.4E6
+rel <- f/w_0
+@
+
+Наилучшее совпадение  при $\gamma = 3.4 \cdot 10^6$.  Тогда $\gamma/w_0 = \Sexpr{rel} $
+
+
+
+
+%---------------------------------------------------------------
+% PART5 _==================================================================
+\textbf{5.} Сравнение экспериментального коэффициента отражения Ge с расчетным
+
+Принимаем $n=4, k \ll 1 $
+
+$$r = \frac{(n-1)^2+k^2}{(n+1)^2+k^2} = \frac{(n-1)^2}{(n+1)^2}=0.36$$
+
+Результат усреднения экспериментальных значений: 0,46. Такое расхождение может быть объяснено путём учёта многократных отражений.
+
+
+<<rgraph54, echo=FALSE, fig.cap="Среднее значение коэффициента отражения германия", dev='cairo_pdf', fig.height=4, fig.show='asis', fig.pos="!h",  message=FALSE,results='hide', warning=FALSE>>=
+dat1 <- read.csv('dataset1.csv', sep = '\t')
+lambda <- dat1$l
+U_Al <- dat1$Al
+U_SiC <- dat1$SiC
+U_Ge <- dat1$Ge
+
+U_0 <- U_Al/0.98
+r_SiC <- U_SiC/U_0
+r_Ge <- U_Ge/U_0
+
+
+
+df <- data.frame(lambda, r_Ge)
+g1 <- ggplot(df,aes(x=lambda)) +
+  geom_point(aes(y=r_Ge)) +
+  #stat_function(fun=func_1, shape=1) +
+  #labs(list(y = expression(list(ln(I/T))),x = expression(list(1/T,1/K)))) +
+  #geom_smooth(method=lm,se=FALSE) +
+  coord_cartesian(ylim = c(0.1, 0.8)) +
+  geom_hline(yintercept=0.464, linetype=2, colour="black") + 
+  labs(list(y = expression(list(r)),x = expression(list(lambda,mkm)))) +
+  theme_bw()
+plot(g1)
+@
+
+%-------------------------------------------------------------------------------
+%__Conclusion__==================================================================
+\clearpage
+\section*{Вывод}
+
+В результате работы были проведены исследования двух образцов: SiC и Ge
+Модель классического осциллятора действительно может с высокой точностью описывать явление решеточного отражения. Данная модель после подбора коэффициентов показала  совпадение расчетных значений с экспериментальными в исследуемой области. Была получена интепретация спектра для SiC через коэффициенты: $\varepsilon_0 = \Sexpr{eps0}$, $\varepsilon_{\infty} =   \Sexpr{epsinf}$, $\omega_0 = 23.80 \cdot 10^{12} Hz$, $\gamma/w_0 = \Sexpr{rel} $
+
+Теоретически рассчитанный коэффициент r(Ge) меньше среднего экспериментального на $\sim 20\%$. Однако, при расчёте коэффициента не было учтено многократное отражение света от границ образца. Расхождение может быть объяснено погрешностями при измерении и аппроксимации, несовершенством границ кристалла, а так же ненулевым показателем поглощения, которым мы пренебрегли в расчетах. 
+
+
+%__Appendix__===============================================
+%\appendix
+\chapter*{Приложение} \label{Appendix}
+\section*{Входные данные}
+
+<<xtable, echo=FALSE, results="asis">>=
+options(scipen=999) #remove scientific notation
+setwd("~/Documents/Labs/lab08")
+dat <- read.csv('dataset1.csv', sep = '\t')
+
+df <- data.frame(dat)
+#colnames(df) <- c("C,\\textit{пФ}","$U,\\textit{мВ}$")
+library(xtable)
+ df <- xtable(df, caption="Входные данные", align = "|r|r|rrr|")
+print(df,sanitize.text.function = function(x){x}, tabular.environment="longtable",floating=FALSE,floating.environment= 'sidewaystable', size="small")
+@
+
+
+
+
+
+%====================================================================
+\end{document}

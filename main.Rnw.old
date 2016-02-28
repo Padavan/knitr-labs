@@ -1,0 +1,89 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage{polyglossia}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+
+\input{packages}       
+\input{styles} 
+\begin{document}
+%\input{title}
+
+%==================__Test Page__===========================
+\chapter{чаптер}
+\section{Тестируем говно}
+
+<<r, echo=FALSE>>=
+library(ggplot2)
+
+dat <- read.csv('dataset1.csv', sep = '\t')
+#colnames(dat) <- c("J,mA", "U,mV")
+g <- ggplot(dat, aes(x = A, y = U)) +
+  geom_point()+
+  geom_line() +
+  scale_x_log10(breaks = c(5,10,15,20,25,30,35)) +
+  theme_bw() +
+  labs(list(x = "J,mA", y = 'U,mV')) 
+  
+plot(g, sub="shit works")
+@
+
+\section{Kable Primitive}
+
+\overfullrule=2cm
+\clearpage
+<<kable primitive, echo=TRUE>>=
+n <- 100
+x <- rnorm(n)
+y <- 2*x + rnorm(n)
+out <- lm(y ~ x)
+library(knitr)
+kable(summary(out)$coef, digits=2)
+@
+
+\section{Kable Cyrillic}
+
+<<kable complicated, echo=TRUE>>=
+options(scipen=999) #remove scientific notation
+dat <- read.csv('dataset1.csv', sep = '\t')
+U_ist <- sqrt(dat$U**2 - 0.0003**2)*1000
+dat$U <- dat$U*1000
+dat$A <- dat$A
+
+df <- data.frame(n = 1:18, dat, U_ist)
+colnames(df) <- c("n","J,mA","u","$U_V$")
+library(knitr)
+kable(df, caption="какие-то данные", digits = 2, longtable = FALSE,  row.names = TRUE)
+@
+
+\section{Таблица сгенерированная из csv с помощью пакета xtable}
+\overfullrule=2cm
+<<xtable, echo=TRUE, results="asis">>=
+options(scipen=999) #remove scientific notation
+dat <- read.csv('dataset1.csv', sep = '\t')
+U_ist <- sqrt(dat$U**2 - 0.0003**2)*1000
+dat$U <- dat$U*1000
+dat$A <- dat$A
+
+df <- data.frame(n = 1:18, dat, U_ist)
+colnames(df) <- c("a","хуй","$\\alpha$","$d^2$")
+library(xtable)
+df <- xtable(df)
+print(df,sanitize.text.function = function(x){x})
+@
+
+\section{Пример вставленной картинки}
+\clearpage
+\begin{figure} [!h]
+  \center
+  \includegraphics [scale=0.5] {figure1_1} \\
+  \caption{Зависимость $C =f(U_\textit{ВН})$. } 
+  \label{img:figure1_1}  
+\end{figure}
+
+%Тестируем референцы на картинку \ref{img:scheme}
+%\section{Задача 1} \label{sect1_1}
+
+
+
+%====================================================================
+\end{document}

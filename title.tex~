@@ -1,0 +1,42 @@
+%==================__TITLE PAGE__===========================
+\begin{titlepage}
+  
+\begin{center}
+	Федеральное государственное автономное образовательное учереждение\\
+	высшего профессионального образования\\
+	«Санкт-Петербургский государственный политехнический университет»\\ 
+	Институт физики, нанотехнологий и телекоммуникаций\\
+	Кафедра физики полупроводников и наноэлектроники\\
+\end{center}
+
+\vspace{50mm}
+\begin{center}		
+  {тема: \bf \large Полупроводниковый полосковый гетеролазер \\
+	\small Лабораторная работа №12}
+\end{center}
+	
+\vspace{30mm}	
+\begin{flushright}
+	Выполнил студент: \hspace{2mm} \underline{\hspace{1.2cm}} \hspace{2mm} Шихалеев Д.А. \\
+	\textit{(подпись студента)} \hspace*{2cm} \\
+	Группа:\hspace{0.5cm} 43426/1\par
+	\vspace{2mm}
+	Преподаватель:\hspace{2mm}  \underline{\hspace{1.2cm}}  \hspace{2mm}доц.Радчук Н.Б.\\
+	\textit{(подпись преподавателя)} \hspace*{2cm} \\
+\end{flushright}
+	
+	%\begin{figure} [h] 
+	%  %\advance\rightskip-3cm
+	%  \includegraphics [scale=0.23,width=0.5\textwidth, right] {title}
+	%  \label{img:title}  
+	%\end{figure}
+	
+\vspace{ \stretch{1} }
+\begin{center}
+	{«Санкт-Петербург»\\
+		2015}
+\end{center}
+	
+\end{titlepage}
+\newpage
+
